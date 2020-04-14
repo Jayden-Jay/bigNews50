@@ -117,6 +117,7 @@
             })
             $('.level02 li').on('click', function () {
                 $(this).addClass('active').siblings().removeClass('active');
+                $('.level01:eq(1)').addClass('active').siblings().removeClass('active');
             })
         })
     </script>
