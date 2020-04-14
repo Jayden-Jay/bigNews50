@@ -43,7 +43,8 @@
                     </form>
                 </div>
                 <div class="col-xs-6">
-                    <a href="article_release.html" class="btn btn-success btn-sm pull-right" id="release_btn" onclick="parent.$('.level02 li:eq(1)').trigger('click')">发表文章</a>
+                    <a href="article_release.html" class="btn btn-success btn-sm pull-right" id="release_btn"
+                        onclick="parent.$('.level02 li:eq(1)').trigger('click')">发表文章</a>
                 </div>
             </div>
             <table class="table table-striped table-bordered table-hover mp20">
@@ -174,6 +175,9 @@
 </script> -->
 <script>
     $(function () {
+        let selectPage;
+        let types = '';
+        let states = '';
         // 所有分类
         $.ajax({
             url: BigNew.category_list,
@@ -185,12 +189,13 @@
                 }
             }
         });
-        function main(page, callback) {
+        // 封装函数
+        function main(page, type, state, callback) {
             $.ajax({
                 url: BigNew.article_query,
                 data: {
-                    type: $('#selCategory').val(),
-                    state: $('#selStatus').val(),
+                    type: type,
+                    state: state,
                     page: page,
                     perpage: 3
                 },
@@ -203,15 +208,18 @@
                         $('#pagination-demo').show().next('p').hide();
                         //把获取回来的数据在调用callback的时候作为实参传递
                         callback(res);
-                    } else if (res.data.data.length == 0) {
+                    } else if (res.data.data.length == 0 && selectPage == 1) {
                         //没有数据
                         $('#pagination-demo').hide().next('p').show();
+                    } else if (res.data.data.length == 0 && res.data.totalPage == selectPage - 1) {
+                        selectPage -= 1;
+                        $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, selectPage);
                     }
                 }
             })
         }
         // 获取清单
-        main(1, function (res) {
+        main(1, types, states, function (res) {
             $('#pagination-demo').twbsPagination({
                 totalPages: res.data.totalPage,
                 visiblePages: 5,
@@ -220,19 +228,45 @@
                 next: '下一页',
                 last: '尾页',
                 onPageClick: function (event, page) {
+                    selectPage = page;
                     // $('#page-content').text('Page ' + page);
-                    main(page, null);
+                    main(page, types, states, null);
                 }
             });
         })
         // 筛选
         $('#btnSearch').on('click', function (e) {
             e.preventDefault();
-            main(1, function (res) {
+            selectPage = 1;
+            types = $('#selCategory').val();
+            states = $('#selStatus').val();
+            main(1, types, states, function (res) {
                 $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, 1);
             });
         })
+        // 删除
+        $('tbody').on('click', '.delete', function () {
+            let id = $(this).attr('data-id');
+            $.ajax({
+                type: 'post',
+                url: BigNew.article_delete,
+                data: {
+                    id: id
+                },
+                success: function (res) {
+                    if (res.code == 204) {
+                        let del = confirm('您确定要删除吗？');
+                        if (del) {
+                            alert('删除成功!');
+                            main(selectPage, types, states, function (res) {
+                                $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, selectPage);
+                            });
+                        }
 
+                    }
+                }
+            })
+        })
     })
 </script>
 
