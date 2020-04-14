@@ -14,6 +14,7 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 模板引擎 -->
     <script src="./libs/template-web.js"></script>
+    <script src="./js/http.js"></script>
 </head>
 
 <body>
@@ -67,6 +68,32 @@
             </form>
         </div>
     </div>
+    <script id="list" type="text/html">
+        {{each data v}}
+            <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script>
+        $(function () {
+            // 获取文章类别
+            $.ajax({
+                url: BigNew.category_list,
+                success: function (res) {
+                    if (res.code == 200) {
+                        // console.log(res);
+                        let option = template('list', res);
+                        $('select.category').html(option);
+                    }
+                }
+            });
+            // 头像预览
+            $('#inputCover').on('change', function () {
+                let file1 = this.files[0];
+                let url = URL.createObjectURL(file1);
+                $(this).prev().attr('src',url);
+            })
+        })
+    </script>
 </body>
 
 </html>
