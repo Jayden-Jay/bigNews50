@@ -88,7 +88,7 @@
         <td class="text-center">{{v.date}}</td>
         <td class="text-center">{{v.state}}</td>
         <td class="text-center">
-            <a href="article_edit.html"   data-id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
+            <a href="./article_edit.html?id={{v.id}}" data-id="{{v.id}}" class="btn btn-default btn-xs">编辑</a>
             <a href="javascript:void(0);" data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
         </td>
     </tr>
@@ -97,7 +97,7 @@
 <script id="listoption" type="text/html">
     <option value="">所有分类</option>
     {{each data v}}
-        <option value="{{v.id}}">{{v.name}}</option>
+    <option value="{{v.id}}">{{v.name}}</option>
     {{/each}}
 </script>
 <!-- <script>
@@ -213,7 +213,8 @@
                         $('#pagination-demo').hide().next('p').show();
                     } else if (res.data.data.length == 0 && res.data.totalPage == selectPage - 1) {
                         selectPage -= 1;
-                        $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, selectPage);
+                        $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage,
+                            selectPage);
                     }
                 }
             })
@@ -259,7 +260,9 @@
                         if (del) {
                             alert('删除成功!');
                             main(selectPage, types, states, function (res) {
-                                $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, selectPage);
+                                $('#pagination-demo').twbsPagination(
+                                    'changeTotalPages', res.data.totalPage,
+                                    selectPage);
                             });
                         }
 
@@ -267,6 +270,7 @@
                 }
             })
         })
+        
     })
 </script>
 

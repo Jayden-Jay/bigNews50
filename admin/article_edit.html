@@ -14,6 +14,13 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 模板引擎 -->
     <script src="./libs/template-web.js"></script>
+    <script src="./js/http.js"></script>
+    <!-- 日期插件 -->
+    <link rel="stylesheet" href="./libs/jedate/css/jeDate-test.css">
+    <link rel="stylesheet" href="./libs/jedate/css/jedate.css">
+    <script src="./libs/jedate/js/jedate.js"></script>
+    <!-- 富文本编辑器 -->
+    <script src="./js/wangEditor.min.js"></script>
 </head>
 
 <body>
@@ -50,23 +57,129 @@
                 </div>
                 <div class="form-group">
                     <label class="col-sm-2 control-label">发布时间：</label>
-                    <div class="col-sm-4">
+                    <div class="jeinpbox col-sm-4">
+                        <input type="text" class="jeinput" id="testico" placeholder="YYYY-MM-DD" name="date">
+                        <div class="icons jebtns"
+                            onclick="jeDate('#testico',{trigger:false,format: 'YYYY-MM-DD', zIndex: 200})">
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
-                    <div class="col-sm-10">
+                    <div id="editor" class="col-sm-10">
+                        <p>欢迎使用 富文本编辑器</p>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success btn-edit">修改</button>
-                        <button type="submit" class="btn btn-default btn-draft">存为草稿</button>
+                        <button type="submit" class="btn btn-success btn-edit">修改为已发布</button>
+                        <button type="submit" class="btn btn-default btn-draft">修改为草稿</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+    <script id="list" type="text/html">
+        {{each data v}}
+        <option value="{{v.id}}">{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script>
+        $(function () {
+            // 文章类别获取
+            $.ajax({
+                url: BigNew.category_list,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('list', res);
+                        $('.category').html(resHtml);
+                    }
+                }
+            })
+            // 日期插件
+            jeDate("#testico", {
+                theme: {
+                    bgcolor: "#00A680",
+                    pnColor: "#00DDAA"
+                },
+                format: "YYYY-MM-DD",
+                isinitVal: true,
+                zIndex: 200
+            });
+            // 富文本编辑器
+            var E = window.wangEditor;
+            var editor = new E('#editor');
+            editor.customConfig.zIndex = 100;
+            editor.create();
+            // 头像预览
+            $('#inputCover').on('change', function () {
+                let file1 = this.files[0];
+                let url = URL.createObjectURL(file1);
+                $('.article_cover').attr('src', url);
+            });
+            // 获取数据
+            let id = window.location.search.split('=')[1];
+            setTimeout(function () {
+                $.ajax({
+                    url: BigNew.article_search,
+                    data: {
+                        id: id
+                    },
+                    success: function (res) {
+                        if (res.code == 200) {
+                            console.log(res);
+                            $('#inputTitle').val(res.data.title);
+                            $('.article_cover').attr('src', res.data.cover);
+                            $('.category').val(res.data.categoryId);
+                            $('#testico').val(res.data.date);
+                            editor.txt.html(res.data.content);
+                        }
+                    }
+                })
+            }, 10)
+            // 修改为已发布
+            $('.btn-edit').on('click', function (e) {
+                e.preventDefault();
+                let fd = new FormData(document.querySelector('form'));
+                fd.append('content', editor.txt.html());
+                fd.append('state', '已发布');
+                fd.append('id', id)
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.article_edit,
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            alert('修改成功');
+                            window.history.back();
+                        }
+                    }
+                })
+            })
+            // 修改为草稿
+            $('.btn-draft').on('click', function (e) {
+                e.preventDefault();
+                let fd = new FormData(document.querySelector('form'));
+                fd.append('content', editor.txt.html());
+                fd.append('id', id)
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.article_edit,
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            alert('修改成功');
+                            window.history.back();
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 
 </html>
