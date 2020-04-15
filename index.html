@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/main.css">
+    <script src="./js/http.js"></script>
 </head>
 
 <body>
     <div class="header">
-        <a href="#" class="logo fl"><img src="images/logo.png" alt="logo"></a>
+        <a href="./index.html" class="logo fl"><img src="images/logo.png" alt="logo"></a>
         <div class="search_form fl">
             <input type="text" class="search_txt" placeholder="黑洞照片">
             <button class="search_btn"><i class="fa fa-search"></i></button>
@@ -227,6 +228,144 @@
     <script src="./js/template-web.js"></script>
     <!-- 引入jq文件 -->
     <script src="./js/jquery-1.12.4.min.js"></script>
+    <!-- 热点图 模板 -->
+    <script id="hotlist" type="text/html">
+        {{each data v}}
+        <li>
+            <a href="./article.html?id={{v.id}}"><img src="{{v.cover}}" alt=""></a>
+            <p>{{v.title}}</p>
+        </li>
+        {{/each}}
+    </script>
+    <!-- 文章热门排行 模板 -->
+    <script id="rankList" type="text/html">
+        {{each data v}}
+        <li>
+            <span>{{$index+1}}</span>
+            <a href="./article.html?id={{v.id}}">{{v.title}}</a>
+        </li>
+        {{/each}}
+    </script>
+    <!-- 最新资讯 模块 -->
+    <script id="news" type="text/html">
+        {{each data v}}
+        <div class="common_news_list">
+            <a href="./article.html?id={{v.id}}" class="list_pic"><img src="{{v.cover}}" alt=""></a>
+            <h4><a href="./article.html?id={{v.id}}">{{v.title}}</a></h4>
+            <p>{{@ v.intro}}</p>
+            <div class="new_info">
+                <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读(
+                    {{v.read}}
+                    )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+                <b>发布于 {{v.date}}</b>
+            </div>
+        </div>
+        {{/each}}
+    </script>
+    <!-- 最新评论 模块 -->
+    <script id="commentList" type="text/html">
+        {{each data v}}
+        <li>
+            <span>{{v.author.slice(0,1)}}</span>
+            <b><em>{{v.author}}</em> {{v.date}} {{v.time}}说:</b>
+            <strong>{{v.intro}}</strong>
+        </li>
+        {{/each}}
+    </script>
+    <!-- 焦点关注  模块 -->
+    <script id="attention" type="text/html">
+        {{each data v}}
+        <li>
+            <a href="./article.html?id={{v.id}}">{{v.intro}}</a>
+        </li>
+        {{/each}}
+    </script>
+    <!-- 文章类型 模块 -->
+    <script id="typeList" type="text/html">
+        {{each data v}}
+            <li>
+                <a href="./list.html?id={{v.id}}">{{v.name}}</a>
+            </li>
+        {{/each}}
+    </script>
+    <script>
+        $(function () {
+            $('.search_txt').val('');
+            // 热点图
+            $.ajax({
+                url: BigNew.index_hotpic,
+                success: function (res) {
+                    let resHtml = template('hotlist', res);
+                    $('.focus_list').html(resHtml);
+                    $('.focus_list').find('li:eq(0)').addClass('first');
+                }
+            })
+            // 文章热门排行
+            $.ajax({
+                url: BigNew.index_rank,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('rankList', res);
+                        $('.hotrank_list').html(resHtml);
+                        $('.hotrank_list li:eq(0) span').addClass('first');
+                        $('.hotrank_list li:eq(1) span').addClass('second');
+                        $('.hotrank_list li:eq(2) span').addClass('third');
+                    }
+                }
+            })
+            // 最新资讯
+            $.ajax({
+                url: BigNew.index_latest,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('news', res);
+                        $('.common_news').html(resHtml);
+                    }
+                }
+            })
+            // 最新评论
+            $.ajax({
+                url: BigNew.index_latest_comment,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('commentList', res);
+                        $('.comment_list').html(resHtml);
+                    }
+                }
+            })
+            // 焦点关注 
+            $.ajax({
+                url: BigNew.index_attention,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('attention', res);
+                        $('.guanzhu_list').html(resHtml);
+                    }
+                }
+            })
+            // 文章搜索
+            $('.search_btn').on('click', function () {
+                let search = $('.search_txt').val();
+                if (search == '') {
+                    alert('请输入您要搜索的关键词');
+                    return;
+                }
+                window.location.href = './list.html?search=' + search;
+            })
+            // 文章类型搜索
+            $.ajax({
+                url: BigNew.index_category,
+                success: function (res) {
+                    if (res.code == 200) {
+                        let resHtml = template('typeList',res);
+                        $('.left_menu').html(resHtml);
+                        $('.level_two').html('<li class="up"></li>'+resHtml);
+                        
+                    }
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>
