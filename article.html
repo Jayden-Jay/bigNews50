@@ -13,7 +13,7 @@
 
 <body>
     <div class="header">
-        <a href="#" class="logo fl"><img src="images/logo.png" alt="logo"></a>
+        <a href="./index.html" class="logo fl"><img src="images/logo.png" alt="logo"></a>
         <div class="search_form fl">
             <input type="text" class="search_txt" placeholder="黑洞照片">
             <button class="search_btn"><i class="fa fa-search"></i></button>
@@ -56,7 +56,7 @@
     <div class="main_con clearfix">
         <div class="left_con setfr">
             <div class="breadcrumb">
-                当前位置： <a href="#">首页</a> &gt; <a href="#">科技</a> &gt; 文章详情
+                当前位置： <a href="./index.html">首页</a> &gt; <a href="#">科技</a> &gt; 文章详情
             </div>
             <h3 class="article_title">马斯克的新花样？连接人脑和电脑的初创公司又筹了一笔钱</h3>
             <div class="article_info">杰克 发布于 2019-05-08 07:08:46&nbsp;&nbsp;&nbsp;分类: 奇趣事&nbsp;&nbsp;&nbsp;阅读:
@@ -208,6 +208,99 @@
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
+    <script src="./js/http.js"></script>
+    <!-- 评论列表 模板 -->
+    <script id="commentList" type="text/html">
+        {{each data v}}
+        <div class="comment_detail_list">
+            <div class="person_pic fl">{{v.author.slice(0,1)}}</div>
+            <div class="name_time fl"><b>{{v.author}}</b><span>{{v.date}}-{{v.time}}</span></div>
+            <div class="comment_text fl">
+                {{v.content}}
+            </div>
+        </div>
+        {{/each}}
+    </script>
+    <script>
+        $(function () {
+            let articleId = window.location.search.split('=')[1];
+            // 文章详细内容
+            $.ajax({
+                url: BigNew.index_article,
+                data: {
+                    id: articleId
+                },
+                success: function (res) {
+                    if (res.code == 200) {
+                        $('.breadcrumb a:eq(1)').text(res.data.category);
+                        $('.breadcrumb a:eq(1)').attr('href', './list.html?id=' + res.data
+                            .categoryId);
+                        $('.article_title').text(res.data.title);
+                        $('.article_info').html(`${res.data.author} 发布于 ${res.data.date}&nbsp;&nbsp;&nbsp;分类: ${res.data.category}&nbsp;&nbsp;&nbsp;阅读:
+                (${res.data.read})&nbsp;&nbsp;&nbsp;评论: (${res.data.comments})`);
+                        $('.article_con').html(res.data.content);
+                        // 上一篇
+                        if (res.data.prev == null) {
+                            $('.article_links a:eq(0)').text('没有上一篇');
+                        } else {
+                            $('.article_links a:eq(0)').text(res.data.prev.title);
+                            $('.article_links a:eq(0)').attr('href', './article.html?id=' + res.data
+                                .prev.id)
+                        }
+                        // 下一篇
+                        if (res.data.next == null) {
+                            $('.article_links a:eq(1)').text('没有下一篇');
+                        } else {
+                            $('.article_links a:eq(1)').text(res.data.next.title);
+                            $('.article_links a:eq(1)').attr('href', './article.html?id=' + res.data
+                                .next.id)
+                        }
+
+                    }
+                }
+            })
+            // 评论列表
+            $.ajax({
+                url: BigNew.index_get_comment,
+                data: {
+                    articleId: articleId
+                },
+                success: function (res) {
+                    if (res.code == 200) {
+                        $('.comment_count').text(res.data.length + '条评论');
+                        let resHtml = template('commentList', res);
+                        $('.comment_list_con').html(resHtml);
+                    }
+                }
+            })
+            // 发表评论
+            $('.comment_sub').on('click', function (e) {
+                e.preventDefault();
+                let userName = $('.comment_name').val().trim();
+                let userComment = $('.comment_input').val().trim();
+                if(userName == "" || userComment == ""){
+                    alert('用户名或者评论内容不能为空!');
+                    return;
+                }
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.index_post_comment,
+                    data: {
+                        author: userName,
+                        content: userComment,
+                        articleId: articleId
+                    },
+                    success: function (res) {
+                        if(res.code == 201){
+                            alert('发表成功');
+                            $('.comment_name').val('');
+                            $('.comment_input').val('');
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 
 </body>
 
